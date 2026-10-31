@@ -1,0 +1,11 @@
+__pycache__/
+*.exe
+big_scores.csv
+ffmpeg*/
+CLion*/
+*.exe
+*.csv
+python-manager-26.4.msix
+grades.json
+test.json
+.vscode/

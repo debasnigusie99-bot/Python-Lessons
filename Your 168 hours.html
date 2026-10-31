@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My 168 hours</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#EEF2F5;--ink:#16212B;--mute:#5B6975;--card:#FFFFFF;--line:#D3DBE2;--sleep:#3B4A7A;--class:#1F7A8C;--study:#4FA383;--meal:#D9A441;--phone:#C2185B;--gap:#B7C1CA;--rec:#16212B;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10171D;--ink:#E8EEF3;--mute:#93A1AD;--card:#18222B;--line:#2C3A46;--sleep:#7D8FD0;--class:#47B0C4;--study:#78CBA9;--meal:#E8BC62;--phone:#F0568F;--gap:#3A4854;--rec:#E8EEF3}}
+:root[data-theme="dark"]{--bg:#10171D;--ink:#E8EEF3;--mute:#93A1AD;--card:#18222B;--line:#2C3A46;--sleep:#7D8FD0;--class:#47B0C4;--study:#78CBA9;--meal:#E8BC62;--phone:#F0568F;--gap:#3A4854;--rec:#E8EEF3}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+main{max-width:860px;margin:0 auto;padding:28px 18px 56px}
+h1{font-size:clamp(2rem,6vw,3.2rem);line-height:1.05;margin:0 0 8px;font-weight:800;letter-spacing:-.02em}
+.lede{color:var(--mute);max-width:56ch;margin:0 0 24px}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+h2{font-size:1.1rem;margin:0 0 12px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(24,1fr);gap:3px}
+.grid i{aspect-ratio:1;border-radius:3px;display:block}
+.rec{background:transparent!important;border:2px solid var(--rec)}
+.gap{background:repeating-linear-gradient(45deg,var(--gap) 0 3px,transparent 3px 6px)!important}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font-size:.88rem;color:var(--mute)}
+.legend b{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.row{display:grid;grid-template-columns:150px 1fr 92px;gap:10px;align-items:center;padding:7px 0}
+.row label{font-weight:600}
+.row output{text-align:right;font-variant-numeric:tabular-nums}
+.row small{display:block;color:var(--mute);font-weight:400}
+input[type=range]{width:100%;accent-color:var(--ink)}
+input:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.verdict{font-size:1.15rem;margin:0 0 6px}
+.verdict strong{color:var(--phone)}
+.stats{display:flex;flex-wrap:wrap;gap:8px 28px;margin:10px 0 0;color:var(--mute);font-size:.92rem}
+.stats b{color:var(--ink);font-size:1.3rem;display:block}
+.check{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.check:first-of-type{border-top:0}
+.check input{width:20px;height:20px;margin-top:3px;accent-color:var(--ink)}
+.check span em{font-style:normal;color:var(--phone);font-weight:600;white-space:nowrap}
+.check small{display:block;color:var(--mute)}
+.note{color:var(--mute);font-size:.88rem;margin:10px 0 0}
+@media (max-width:560px){.row{grid-template-columns:1fr 90px}.row input{grid-column:1/-1;grid-row:2}}
+</style>
+</head>
+<body>
+<main>
+<h1>Your 168 hours</h1>
+<p class="lede">Each square is one hour of your week. Set your honest numbers below, then see what’s left over and where it leaks.</p>
+
+<section aria-label="Week map">
+<h2>This week, hour by hour</h2>
+<div class="grid" id="grid" role="img" aria-label="168 squares representing the hours of a week"></div>
+<div class="legend" id="legend"></div>
+</section>
+
+<section aria-label="Verdict">
+<p class="verdict" id="verdict"></p>
+<div class="stats" id="stats"></div>
+</section>
+
+<section aria-label="Adjust hours">
+<h2>Your hours per week</h2>
+<div id="rows"></div>
+<p class="note">Estimates are fine. Check your phone’s Screen Time or Digital Wellbeing for the real phone number, since most people guess too low.</p>
+</section>
+
+<section aria-label="Reclaim checklist">
+<h2>Win hours back</h2>
+<div id="checks"></div>
+<p class="note" id="recnote"></p>
+</section>
+</main>
+
+<script>
+var C=[
+{k:"sleep",n:"Sleep & rest",v:49,max:84,col:"var(--sleep)",hint:"7 h a night is 49"},
+{k:"class",n:"Classes",v:18,max:50,col:"var(--class)",hint:"lectures, labs, tutorials"},
+{k:"study",n:"Study",v:14,max:50,col:"var(--study)",hint:"focused work outside class"},
+{k:"meal",n:"Meals & personal care",v:21,max:50,col:"var(--meal)",hint:"eating, showers, getting ready"},
+{k:"phone",n:"Social media & phone",v:28,max:70,col:"var(--phone)",hint:"4 h a day is 28"}
+];
+var R=[
+{t:"Phone stays in another room while studying",d:"Study blocks without it in reach",h:4},
+{t:"Lights-out time, phone charges across the room",d:"Replaces bedtime scrolling",h:3.5},
+{t:"No phone for the first hour after waking",d:"Start the day on your own terms",h:3.5},
+{t:"Cap social apps at two 20-minute slots a day",d:"Use app timers or a lock",h:5},
+{t:"Phone away at meals",d:"Eat, then check",h:2}
+];
+var on={};
+var $=function(i){return document.getElementById(i)};
+function fmt(x){return (Math.round(x*10)/10)+" h"}
+
+function build(){
+ var rows=$("rows");
+ C.forEach(function(c){
+  var r=document.createElement("div");r.className="row";
+  r.innerHTML='<label for="s_'+c.k+'">'+c.n+'<small>'+c.hint+'</small></label><input type="range" id="s_'+c.k+'" min="0" max="'+c.max+'" step="1" value="'+c.v+'"><output id="o_'+c.k+'"></output>';
+  rows.appendChild(r);
+  r.querySelector("input").addEventListener("input",function(e){c.v=+e.target.value;draw()});
+ });
+ var ch=$("checks");
+ R.forEach(function(x,i){
+  var l=document.createElement("label");l.className="check";
+  l.innerHTML='<input type="checkbox" data-i="'+i+'"><span>'+x.t+' <em>+'+x.h+' h</em><small>'+x.d+'</small></span>';
+  ch.appendChild(l);
+  l.querySelector("input").addEventListener("change",function(e){on[i]=e.target.checked;draw()});
+ });
+}
+
+function draw(){
+ var tot=0;C.forEach(function(c){tot+=c.v});
+ var phone=C[4].v;
+ var want=0;R.forEach(function(x,i){if(on[i])want+=x.h});
+ var rec=Math.min(want,phone);
+ var gap=Math.max(0,168-tot), over=Math.max(0,tot-168);
+ var cells=[];
+ C.forEach(function(c){
+  var n=c.v; if(c.k==="phone")n=phone-rec;
+  for(var i=0;i<Math.round(n);i++)cells.push({c:c.col});
+ });
+ for(var i=0;i<Math.round(rec);i++)cells.push({r:1});
+ for(var i=0;i<Math.round(gap);i++)cells.push({g:1});
+ cells=cells.slice(0,168);
+ var g=$("grid");g.innerHTML="";
+ cells.forEach(function(x){
+  var e=document.createElement("i");
+  if(x.r)e.className="rec";else if(x.g)e.className="gap";else e.style.background=x.c;
+  g.appendChild(e);
+ });
+ var lg="";
+ C.forEach(function(c){lg+='<span><b style="background:'+c.col+'"></b>'+c.n+' '+fmt(c.k==="phone"?phone-rec:c.v)+'</span>'});
+ lg+='<span><b class="rec"></b>Reclaimed '+fmt(rec)+'</span><span><b class="gap" style="width:11px;height:11px"></b>Unaccounted '+fmt(gap)+'</span>';
+ $("legend").innerHTML=lg;
+ C.forEach(function(c){$("o_"+c.k).textContent=fmt(c.v)+" ("+fmt(c.v/7)+"/day)"});
+ var v;
+ if(over>0){v='Your numbers add up to <strong>'+fmt(tot)+'</strong>, which is '+fmt(over)+' more than a week has. Something is overestimated.';}
+ else if(gap>=30){v='<strong>'+fmt(gap)+'</strong> a week isn’t going anywhere you named. That’s your biggest leak.';}
+ else if(phone/ (tot||1)>0.18){v='Your phone takes <strong>'+fmt(phone)+'</strong> a week, more than you spend on study.';}
+ else{v='Your week is mostly accounted for. The gains are in the details below.';}
+ if(over===0&&gap>=30&&phone>C[2].v)v+=' Your phone also outweighs study.';
+ $("verdict").innerHTML=v;
+ $("stats").innerHTML='<div><b>'+fmt(gap/7)+'</b>unaccounted per day</div><div><b>'+fmt(phone/7)+'</b>phone per day</div><div><b>'+Math.round(C[2].v/(C[0].v||1)*100)/100+'</b>study hours per sleep hour</div><div><b>'+fmt(rec)+'</b>reclaimed per week</div>';
+ $("recnote").textContent=want>phone?"Your checked moves add up to more than your phone time, so only "+fmt(phone)+" counts.":(rec>0?"That’s about "+fmt(rec/7)+" more per day to put toward study, sleep, or rest.":"Tick the moves you’ll commit to this week.");
+}
+build();draw();
+</script>
+</body>
+</html>
